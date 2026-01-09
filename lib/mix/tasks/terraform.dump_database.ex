@@ -23,7 +23,7 @@ defmodule Mix.Tasks.Terraform.DumpDatabase do
   - `--local-port` - Local port to use for SSH tunnel (default: random available port)
   - `--identifier` - Use RDS instance identifier instead of database name
   - `--format` - Output format (default: custom, options: custom|text)
-  - `--resource-group` - Specify a custom resource group name (default: "<ProjectName> Backend")
+  - `--resource-group` - Specify a custom resource group name (default: "<ProjectName>")
   - `--pem` - Specify a custom pem file
 
   ## Format Options

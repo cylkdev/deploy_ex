@@ -186,7 +186,7 @@ defmodule DeployEx.AwsMachine do
 
   def fetch_instance_groups(project_name, opts \\ []) do
     resource_group = opts[:resource_group] ||
-                     "#{DeployEx.Utils.upper_title_case(project_name)} Backend"
+                     "#{DeployEx.Utils.upper_title_case(project_name)}"
 
     with {:ok, instances} <- fetch_instances_by_tag("Group", resource_group) do
       {:ok, instances
@@ -237,45 +237,45 @@ defmodule DeployEx.AwsMachine do
 
   def find_instances_by_tags(tag_filters, opts \\ []) when is_list(tag_filters) do
     region = opts[:region] || DeployEx.Config.aws_region()
-    
+
     with {:ok, instances} <- fetch_instances(region) do
       filtered = Enum.filter(instances, fn instance ->
         Enum.all?(tag_filters, fn {tag_name, tag_value} ->
           has_tag?(instance, tag_name, tag_value)
         end)
       end)
-      
+
       {:ok, filtered}
     end
   end
 
   def find_instances_needing_setup(opts \\ []) do
     region = opts[:region] || DeployEx.Config.aws_region()
-    
+
     with {:ok, instances} <- fetch_instances_by_tag(region, "ManagedBy", "DeployEx") do
       incomplete = instances
       |> Enum.filter(&instance_running_or_pending?/1)
       |> Enum.reject(&setup_complete?/1)
-      
+
       {:ok, incomplete}
     end
   end
 
   def find_instances_setup_complete(opts \\ []) do
     region = opts[:region] || DeployEx.Config.aws_region()
-    
+
     with {:ok, instances} <- fetch_instances_by_tag(region, "ManagedBy", "DeployEx") do
       complete = instances
       |> Enum.filter(&instance_running_or_pending?/1)
       |> Enum.filter(&setup_complete?/1)
-      
+
       {:ok, complete}
     end
   end
 
   def parse_instance_info(instance) do
     tags = get_instance_tags(instance)
-    
+
     %{
       instance_id: instance["instanceId"],
       instance_type: instance["instanceType"],
@@ -293,7 +293,7 @@ defmodule DeployEx.AwsMachine do
 
   defp has_tag?(instance, tag_name, tag_value) do
     tags = get_instance_tags(instance)
-    
+
     case tag_value do
       values when is_list(values) -> tags[tag_name] in values
       %Regex{} = regex -> tags[tag_name] && Regex.match?(regex, tags[tag_name])
@@ -310,10 +310,10 @@ defmodule DeployEx.AwsMachine do
     case instance["tagSet"] do
       %{"item" => items} when is_list(items) ->
         Map.new(items, fn %{"key" => k, "value" => v} -> {k, v} end)
-      
+
       %{"item" => %{"key" => k, "value" => v}} ->
         %{k => v}
-      
+
       _ ->
         %{}
     end

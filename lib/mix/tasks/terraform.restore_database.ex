@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Terraform.RestoreDatabase do
   - `--local-port` - Local port to use for SSH tunnel (default: random available port)
   - `--clean` - Drop database objects before recreating them
   - `--jobs` - Number of parallel jobs for restore (custom format only)
-  - `--resource-group` - Specify a custom resource group name (default: "<ProjectName> Backend")
+  - `--resource-group` - Specify a custom resource group name (default: "<ProjectName>")
   - `--pem` - Specify a custom pem file
   """
 

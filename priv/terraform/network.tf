@@ -6,12 +6,20 @@ data "aws_availability_zones" "available" {
     values = ["availability-zone"]
   }
 }
-
 locals {
   project_name = lower(replace(var.project_name, "_", "-"))
 
   vpc_cidr = "10.0.0.0/16"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+
+  azs = (
+    length(data.aws_availability_zones.available.names) == 0
+    ? []
+    : slice(
+        data.aws_availability_zones.available.names,
+        0,
+        min(3, length(data.aws_availability_zones.available.names))
+      )
+  )
 }
 
 module "vpc" {
@@ -33,9 +41,9 @@ module "vpc" {
   create_egress_only_igw = !var.disable_ipv6
 
   # Enable IPv6 CIDR blocks for subnets
-  private_subnet_ipv6_prefixes  = var.disable_ipv6 ? [] : [0, 1, 2]
-  public_subnet_ipv6_prefixes   = var.disable_ipv6 ? [] : [3, 4, 5]
-  database_subnet_ipv6_prefixes = var.disable_ipv6 ? [] : [6, 7, 8]
+  private_subnet_ipv6_prefixes = var.disable_ipv6 ? [] : [for i in range(length(local.azs)) : i]
+  public_subnet_ipv6_prefixes  = var.disable_ipv6 ? [] : [for i in range(length(local.azs)) : i + 3]
+  database_subnet_ipv6_prefixes = var.disable_ipv6 ? [] : [for i in range(length(local.azs)) : i + 6]
 
   # Allow IPv6 DNS resolution for IPv4 addresses
   private_subnet_enable_dns64 = !var.disable_ipv6
@@ -44,7 +52,7 @@ module "vpc" {
   # This makes the database publicly accessible (Not Recommended)
   create_database_internet_gateway_route = false
 
-  azs = data.aws_availability_zones.available.names
+  azs = local.azs
 
   private_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k)]
   public_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 4)]

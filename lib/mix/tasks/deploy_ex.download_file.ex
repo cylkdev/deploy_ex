@@ -86,7 +86,7 @@ defmodule Mix.Tasks.DeployEx.DownloadFile do
         abs_pem_file = Path.expand(pem_file_path)
         abs_local_path = Path.expand(local_path)
 
-        scp_cmd = "scp -i #{abs_pem_file} admin@#{ip}:#{remote_path} #{abs_local_path}"
+        scp_cmd = "scp -i #{abs_pem_file} ec2-user@#{ip}:#{remote_path} #{abs_local_path}"
 
         case DeployEx.Utils.run_command(scp_cmd, File.cwd!()) do
           {:ok, _} -> :ok

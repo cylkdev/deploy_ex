@@ -194,7 +194,7 @@ env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
 Most of these are available on any command in DeployEx
 - `aws-bucket` - Bucket to use for aws deploys
 - `aws-region` - Bucket to use for aws deploys
-- `resource-group` - The resource group to target (AWS Group Tag for instances), by default this is "AppName Backend"
+- `resource-group` - The resource group to target (AWS Group Tag for instances), by default this is "AppName"
 
 ## Terraform Command Options
 
@@ -676,7 +676,7 @@ To redeploy a node you can run `mix ansible.deploy --only <app>` with ansible in
 ### Clustering
 You can easily cluster your app with [this LibCluster Strategy](https://github.com/MikaAK/libcluster_ec2_tag_strategy) which
 will read the EC2 tags from all instances and attempt to connect them. Because this library will tag resources with
-`<APP_NAME> Backend`, so `learn_elixir` becomes `Learn Elixir Backend`, you can use a config similar to the following to
+`<APP_NAME>`, so `learn_elixir` becomes `Learn Elixir`, you can use a config similar to the following to
 connect your nodes together with the strategy mentioned above:
 
 ```elixir
@@ -685,7 +685,7 @@ topologies = [
     strategy: Cluster.Strategy.EC2Tag,
     config: [
       tag_name: "Group",
-      tag_value: "<MY APP> Backend"
+      tag_value: "<MY APP>"
     ]
   ],
 
@@ -693,7 +693,7 @@ topologies = [
     strategy: Cluster.Strategy.EC2Tag,
     config: [
       tag_name: "Group",
-      tag_value: "<MY APP> Backend Secondary"
+      tag_value: "<MY APP> Secondary"
     ]
   ]
 ]

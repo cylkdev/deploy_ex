@@ -1,7 +1,7 @@
 defmodule DeployEx.SSH do
   def connect_to_ssh(ip, port \\ 22, pem_file_path, user \\ "admin") do
     key_file = pem_file_path |> Path.basename |> to_charlist
-    
+
     :ssh.connect(to_charlist(ip), port, maybe_add_ipv6(ip, [
       {:user, to_charlist(user)},
       {:user_dir, pem_file_path |> Path.dirname |> to_charlist},
@@ -96,7 +96,7 @@ defmodule DeployEx.SSH do
       "-i", abs_pem_file,
       "-f", "-N",
       "-L", "#{local_port}:#{target_host}:#{target_port}",
-      "admin@#{jump_server_ip}"
+      "ec2-user@#{jump_server_ip}"
     ]
 
     case System.cmd("ssh", args, stderr_to_stdout: true) do

@@ -7,7 +7,7 @@ hostnames:
   - tag:Name
 
 filters:
-  tag:Group: "<%= DeployEx.Utils.upper_title_case(@app_name) %> Backend"
+  tag:Group: "<%= DeployEx.Utils.upper_title_case(@app_name) %>"
 
 keyed_groups:
   - key: tags['MonitoringKey']
@@ -22,4 +22,3 @@ keyed_groups:
 
 compose:
   ansible_host: public_ip_address
-

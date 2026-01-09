@@ -13,7 +13,7 @@ variable "project_name" {
 variable "resource_group" {
   description = "Value of the Group tag for all resources"
   type        = string
-  default     = "<%= DeployEx.Utils.upper_title_case(@app_name) %> Backend"
+  default     = "<%= DeployEx.Utils.upper_title_case(@app_name) %>"
 }
 
 variable "enable_ipv4" {
@@ -110,6 +110,8 @@ variable "<%= @app_name %>_project" {
     instance_count = optional(number)
     instance_type  = optional(string)
     instance_ami   = optional(string)
+
+    use_latest_ami = optional(bool)
 
     private_ip        = optional(string)
     enable_eip        = optional(bool)

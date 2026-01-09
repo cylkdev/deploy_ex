@@ -168,13 +168,6 @@ variable "enable_elb_https" {
   nullable    = false
 }
 
-variable "elb_instance_port" {
-  description = "Changes the application port targeted by the load balancer"
-  type        = number
-  default     = 80
-  nullable    = false
-}
-
 variable "elb_health_check_path" {
   description = "Changes the application path targeted by the load balancer health check"
   type        = string
@@ -287,6 +280,13 @@ variable "use_custom_ami" {
   description = "Enable custom AMI lookup from SSM Parameter Store. Set to false to always use instance_ami directly."
   type        = bool
   default     = true
+  nullable    = false
+}
+
+variable "use_latest_ami" {
+  description = "Specify to use the latest AMI instead of the one specified in instance_ami"
+  type        = bool
+  default     = false
   nullable    = false
 }
 

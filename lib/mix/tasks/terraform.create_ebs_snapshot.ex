@@ -38,7 +38,7 @@ defmodule Mix.Tasks.Terraform.CreateEbsSnapshot do
   mix terraform.create_ebs_snapshot my_app --description "Backup before deployment"
 
   # With specific resource group
-  mix terraform.create_ebs_snapshot my_app --resource_group "My Backend"
+  mix terraform.create_ebs_snapshot my_app --resource_group "My"
   ```
   """
 

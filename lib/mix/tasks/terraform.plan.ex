@@ -35,6 +35,7 @@ defmodule Mix.Tasks.Terraform.Plan do
         directory: :string,
         force: :boolean,
         quiet: :boolean,
+        var_file: :string
       ]
     )
 

@@ -162,7 +162,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
         #   :reset, pem_file_path
         # ])
 
-        # with {:error, e} <- DeployExHelpers.run_command_with_input("ssh -i #{pem_file_path} admin@#{ip}", "") do
+        # with {:error, e} <- DeployExHelpers.run_command_with_input("ssh -i #{pem_file_path} ec2-user@#{ip}", "") do
         #   Mix.shell().error(to_string(e))
         # end
   end
@@ -171,12 +171,12 @@ defmodule Mix.Tasks.DeployEx.Ssh do
     command = build_command(app_name, opts)
 
     if opts[:short] do
-      Mix.shell().info("ssh -i #{pem_file_path} admin@#{ip} #{command}")
+      Mix.shell().info("ssh -i #{pem_file_path} ec2-user@#{ip} #{command}")
     else
       Mix.shell().info([
         :green, "Use the following comand to connect to ",
         :reset, app_name || "Unknown", :green, " \"",
-        :reset, "ssh -i #{pem_file_path} admin@#{ip} ", command,
+        :reset, "ssh -i #{pem_file_path} ec2-user@#{ip} ", command,
         :green, "\""
       ])
     end

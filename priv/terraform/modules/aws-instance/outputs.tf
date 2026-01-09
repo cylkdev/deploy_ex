@@ -13,10 +13,9 @@ output "public_ips" {
   value       = var.enable_autoscaling ? data.aws_instances.autoscaling_instances.public_ips : aws_instance.ec2_instance.*.public_ip
 }
 
-
 output "ipv6_addresses" {
   description = "IPv6 addresses of the EC2 instance"
-  value       = var.enable_autoscaling ? data.aws_instances.autoscaling_instances.ipv6_addresses : aws_instance.ec2_instance.*.ipv6_addresses
+  value = var.enable_autoscaling ? data.aws_instances.autoscaling_instances.ipv6_addresses : flatten(aws_instance.ec2_instance[*].ipv6_addresses)
 }
 
 output "load_balancer_dns_name" {
