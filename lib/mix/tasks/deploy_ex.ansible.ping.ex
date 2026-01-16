@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Ansible.Ping do
+defmodule Mix.Tasks.DeployEx.Ansible.Ping do
   use Mix.Task
 
   @shortdoc "Pings all configured Ansible hosts"
@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Ansible.Ping do
 
   ## Example
   ```bash
-  mix ansible.ping
+  mix deploy_ex.ansible.ping
   ```
 
   ## Options

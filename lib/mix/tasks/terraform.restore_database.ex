@@ -49,20 +49,21 @@ defmodule Mix.Tasks.Terraform.RestoreDatabase do
          format <- detect_dump_format(dump_file),
          {:ok, connection_info} <- get_connection_info(database_name, opts),
          {:ok, connection_info} <- setup_connection(connection_info, opts) do
-
       Mix.shell().info([:yellow, "Restoring database #{database_name} from #{dump_file}"])
 
-      restore_result = if format == "custom" do
-        run_pg_restore(dump_file, connection_info, opts)
-      else
-        run_psql_restore(dump_file, connection_info, opts)
-      end
+      restore_result =
+        if format == "custom" do
+          run_pg_restore(dump_file, connection_info, opts)
+        else
+          run_psql_restore(dump_file, connection_info, opts)
+        end
 
       case restore_result do
         :ok ->
           cleanup_connection(connection_info)
           Mix.shell().info([:green, "Database restore completed successfully"])
           :ok
+
         {:error, error} ->
           cleanup_connection(connection_info)
           Mix.raise("Failed to restore database: #{error}")
@@ -91,17 +92,22 @@ defmodule Mix.Tasks.Terraform.RestoreDatabase do
   defp parse_extra_args([database_name, dump_file | _]) do
     {database_name, dump_file}
   end
+
   defp parse_extra_args(_) do
     {:error, "Must provide both database name and dump file path"}
   end
 
   defp check_restore_tools_installed do
     with nil <- System.find_executable("psql") do
-      Mix.raise("PostgreSQL client tools (psql) not found. Please install PostgreSQL client tools.")
+      Mix.raise(
+        "PostgreSQL client tools (psql) not found. Please install PostgreSQL client tools."
+      )
     end
 
     with nil <- System.find_executable("pg_restore") do
-      Mix.raise("PostgreSQL client tools (pg_restore) not found. Please install PostgreSQL client tools.")
+      Mix.raise(
+        "PostgreSQL client tools (pg_restore) not found. Please install PostgreSQL client tools."
+      )
     end
 
     :ok
@@ -125,21 +131,23 @@ defmodule Mix.Tasks.Terraform.RestoreDatabase do
 
   defp get_connection_info(database_name, opts) do
     if opts[:local] do
-      {:ok, %{
-        host: "localhost",
-        port: 5432,
-        database: database_name,
-        username: System.get_env("USER"),
-        password: nil,
-        local: true
-      }}
+      {:ok,
+       %{
+         host: "localhost",
+         port: 5432,
+         database: database_name,
+         username: System.get_env("USER"),
+         password: nil,
+         local: true
+       }}
     else
       with {:ok, db_info} <- AwsDatabase.get_database_info(database_name, false),
            {:ok, password} <- AwsDatabase.get_database_password(db_info, opts[:directory]) do
-        {:ok, Map.merge(db_info, %{
-          password: password,
-          local: false
-        })}
+        {:ok,
+         Map.merge(db_info, %{
+           password: password,
+           local: false
+         })}
       end
     end
   end
@@ -153,12 +161,23 @@ defmodule Mix.Tasks.Terraform.RestoreDatabase do
     else
       {machine_opts, opts} = Keyword.split(opts, [:resource_group])
 
-      with {:ok, {jump_server_ip, jump_server_ipv6}} <- AwsMachine.find_jump_server(DeployExHelpers.project_name(), machine_opts),
+      with {:ok, {jump_server_ip, jump_server_ipv6}} <-
+             AwsMachine.find_jump_server(DeployExHelpers.project_name(), machine_opts),
            {:ok, local_port} <- get_local_port(opts[:local_port]),
            {host, port} <- AwsDatabase.parse_endpoint(connection_info.endpoint),
            {:ok, pem_file} <- DeployEx.Terraform.find_pem_file(opts[:directory], opts[:pem]),
-           :ok <- SSH.setup_ssh_tunnel(jump_server_ipv6 || jump_server_ip, host, port, local_port, pem_file) do
-        Mix.shell().info([:green, "Connected a tunnel to #{jump_server_ipv6 || jump_server_ip}:#{port}"])
+           :ok <-
+             SSH.setup_ssh_tunnel(
+               jump_server_ipv6 || jump_server_ip,
+               host,
+               port,
+               local_port,
+               pem_file
+             ) do
+        Mix.shell().info([
+          :green,
+          "Connected a tunnel to #{jump_server_ipv6 || jump_server_ip}:#{port}"
+        ])
 
         {:ok, Map.put(connection_info, :local_port, local_port)}
       end
@@ -177,12 +196,19 @@ defmodule Mix.Tasks.Terraform.RestoreDatabase do
     {host, port} = get_connection_details(connection_info)
 
     env = if connection_info.password, do: [{"PGPASSWORD", connection_info.password}], else: []
-    args = [
-      "-h", host,
-      "-p", to_string(port),
-      "-U", connection_info.username,
-      "-d", connection_info.database
-    ] ++ String.split("#{jobs_flag} #{schema_flag} #{clean_flag}", " ", trim: true) ++ [dump_file]
+
+    args =
+      [
+        "-h",
+        host,
+        "-p",
+        to_string(port),
+        "-U",
+        connection_info.username,
+        "-d",
+        connection_info.database
+      ] ++
+        String.split("#{jobs_flag} #{schema_flag} #{clean_flag}", " ", trim: true) ++ [dump_file]
 
     case System.cmd(pg_restore, args, env: env, stderr_to_stdout: true) do
       {_, 0} -> :ok
@@ -197,12 +223,18 @@ defmodule Mix.Tasks.Terraform.RestoreDatabase do
     {host, port} = get_connection_details(connection_info)
 
     env = if connection_info.password, do: [{"PGPASSWORD", connection_info.password}], else: []
-    args = [
-      "-h", host,
-      "-p", to_string(port),
-      "-U", connection_info.username,
-      "-d", connection_info.database
-    ] ++ String.split(schema_flag, " ", trim: true) ++ ["-f", dump_file]
+
+    args =
+      [
+        "-h",
+        host,
+        "-p",
+        to_string(port),
+        "-U",
+        connection_info.username,
+        "-d",
+        connection_info.database
+      ] ++ String.split(schema_flag, " ", trim: true) ++ ["-f", dump_file]
 
     case System.cmd(psql, args, env: env, stderr_to_stdout: true) do
       {_, 0} -> :ok

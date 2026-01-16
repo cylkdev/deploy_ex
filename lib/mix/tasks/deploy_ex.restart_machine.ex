@@ -48,7 +48,8 @@ defmodule Mix.Tasks.DeployEx.RestartMachine do
     {_, node_name_args} = OptionParser.parse!(args, switches: [])
 
     with {:ok, app_name} <- DeployExHelpers.find_project_name(node_name_args),
-         {:ok, instances} <- DeployEx.AwsMachine.fetch_instance_ids_by_tag("InstanceGroup", app_name),
+         {:ok, instances} <-
+           DeployEx.AwsMachine.fetch_instance_ids_by_tag("InstanceGroup", app_name),
          :ok <- restart_instances(instances, choose_instances(instances)) do
       :ok
     else
@@ -72,14 +73,20 @@ defmodule Mix.Tasks.DeployEx.RestartMachine do
 
   defp stop_instances(instances, instance_ids) do
     with {:ok, _} <- DeployEx.AwsMachine.stop(instance_ids) do
-      Mix.shell().info([:yellow, "Stopping instances initiated for #{instance_names_from_ids(instances, instance_ids)}..."])
+      Mix.shell().info([
+        :yellow,
+        "Stopping instances initiated for #{instance_names_from_ids(instances, instance_ids)}..."
+      ])
 
       :ok
     end
   end
 
   defp wait_for_stopped(instances, instance_ids) do
-    Mix.shell().info([:yellow, "Waiting for instances to stop #{instance_names_from_ids(instances, instance_ids)}..."])
+    Mix.shell().info([
+      :yellow,
+      "Waiting for instances to stop #{instance_names_from_ids(instances, instance_ids)}..."
+    ])
 
     with :ok <- DeployEx.AwsMachine.wait_for_stopped(instance_ids) do
       Mix.shell().info([:green, "Instances stopped successfully"])
@@ -88,7 +95,11 @@ defmodule Mix.Tasks.DeployEx.RestartMachine do
 
   defp wait_for_started(instances, instance_ids) do
     Mix.shell().info([:yellow, "Start instances initiated..."])
-    Mix.shell().info([:yellow, "Waiting for instances to start #{instance_names_from_ids(instances, instance_ids)}..."])
+
+    Mix.shell().info([
+      :yellow,
+      "Waiting for instances to start #{instance_names_from_ids(instances, instance_ids)}..."
+    ])
 
     with :ok <- DeployEx.AwsMachine.wait_for_started(instance_ids) do
       Mix.shell().info([:green, "Instances started successfully"])
@@ -97,7 +108,7 @@ defmodule Mix.Tasks.DeployEx.RestartMachine do
 
   defp instance_names_from_ids(instances_map, instance_ids) do
     instances_map
-      |> Map.filter(fn {_instance_name, instance_id} -> instance_id in instance_ids end)
-      |> Map.keys
+    |> Map.filter(fn {_instance_name, instance_id} -> instance_id in instance_ids end)
+    |> Map.keys()
   end
 end

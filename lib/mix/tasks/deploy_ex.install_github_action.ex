@@ -7,15 +7,20 @@ defmodule Mix.Tasks.DeployEx.InstallGithubAction do
   @github_action_template_path DeployExHelpers.priv_file("github-action.yml.eex")
 
   @github_action_setup_nodes_path "./.github/workflows/setup-new-nodes.yml"
-  @github_action_setup_nodes_template_path DeployExHelpers.priv_file("github-action-setup-nodes.yml.eex")
+  @github_action_setup_nodes_template_path DeployExHelpers.priv_file(
+                                             "github-action-setup-nodes.yml.eex"
+                                           )
 
-  @github_action_scripts_paths [{
-    DeployExHelpers.priv_file("github-action-maybe-commit-terraform-changes.sh"),
-    "./.github/github-action-maybe-commit-terraform-changes.sh"
-  }, {
-    DeployExHelpers.priv_file("github-action-secrets-to-env.sh"),
-    "./.github/github-action-secrets-to-env.sh"
-  }]
+  @github_action_scripts_paths [
+    {
+      DeployExHelpers.priv_file("github-action-maybe-commit-terraform-changes.sh"),
+      "./.github/github-action-maybe-commit-terraform-changes.sh"
+    },
+    {
+      DeployExHelpers.priv_file("github-action-secrets-to-env.sh"),
+      "./.github/github-action-secrets-to-env.sh"
+    }
+  ]
   @shortdoc "Installs GitHub Actions for automated infrastructure and deployment management"
   @moduledoc """
   Installs GitHub Action workflows that automate infrastructure management and application deployment.
@@ -50,16 +55,18 @@ defmodule Mix.Tasks.DeployEx.InstallGithubAction do
   """
 
   def run(args) do
-    opts = args
+    opts =
+      args
       |> parse_args
       |> Keyword.put_new(:pem_directory, @terraform_default_path)
 
     with :ok <- DeployExHelpers.check_in_umbrella(),
          {:ok, releases} <- DeployExHelpers.fetch_mix_releases(),
-         {:ok, pem_file_path} <- DeployEx.Terraform.find_pem_file(opts[:pem_directory], opts[:pem]) do
-      @github_action_path |> Path.dirname |> File.mkdir_p!
+         {:ok, pem_file_path} <-
+           DeployEx.Terraform.find_pem_file(opts[:pem_directory], opts[:pem]) do
+      @github_action_path |> Path.dirname() |> File.mkdir_p!()
 
-      app_names = releases |> Keyword.keys |> Enum.map(&to_string/1)
+      app_names = releases |> Keyword.keys() |> Enum.map(&to_string/1)
 
       DeployExHelpers.write_template(
         @github_action_template_path,
@@ -95,15 +102,16 @@ defmodule Mix.Tasks.DeployEx.InstallGithubAction do
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(args,
-      aliases: [f: :force, q: :quit, d: :pem_directory, p: :pem],
-      switches: [
-        force: :boolean,
-        quiet: :boolean,
-        pem_directory: :boolean,
-        pem: :string
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(args,
+        aliases: [f: :force, q: :quit, d: :pem_directory, p: :pem],
+        switches: [
+          force: :boolean,
+          quiet: :boolean,
+          pem_directory: :boolean,
+          pem: :string
+        ]
+      )
 
     opts
   end

@@ -29,28 +29,30 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Scale do
   """
 
   def run(args) do
-    {opts, remaining_args} = OptionParser.parse!(args,
-      aliases: [e: :environment],
-      switches: [environment: :string]
-    )
+    {opts, remaining_args} =
+      OptionParser.parse!(args,
+        aliases: [e: :environment],
+        switches: [environment: :string]
+      )
 
-    {app_name, desired_capacity} = case remaining_args do
-      [name, capacity] ->
-        case Integer.parse(capacity) do
-          {num, ""} when num >= 0 ->
-            {name, num}
+    {app_name, desired_capacity} =
+      case remaining_args do
+        [name, capacity] ->
+          case Integer.parse(capacity) do
+            {num, ""} when num >= 0 ->
+              {name, num}
 
-          _ ->
-            Mix.raise("Desired capacity must be a non-negative integer. Got: #{capacity}")
-        end
+            _ ->
+              Mix.raise("Desired capacity must be a non-negative integer. Got: #{capacity}")
+          end
 
-      _ ->
-        Mix.raise("""
-        Invalid arguments.
-        Usage: mix deploy_ex.autoscale.scale <app_name> <desired_capacity>
-        Example: mix deploy_ex.autoscale.scale my_app 3
-        """)
-    end
+        _ ->
+          Mix.raise("""
+          Invalid arguments.
+          Usage: mix deploy_ex.autoscale.scale <app_name> <desired_capacity>
+          Example: mix deploy_ex.autoscale.scale my_app 3
+          """)
+      end
 
     environment = Keyword.get(opts, :environment, Mix.env() |> to_string())
 
@@ -63,28 +65,40 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Scale do
       case set_desired_capacity(asg_name, desired_capacity) do
         :ok ->
           Mix.shell().info([
-            :green, "\n✓ Successfully requested scaling to #{desired_capacity} instances.\n"
+            :green,
+            "\n✓ Successfully requested scaling to #{desired_capacity} instances.\n"
           ])
+
           Mix.shell().info([
-            "Run ", :bright, "mix deploy_ex.autoscale.status #{app_name}", :reset,
+            "Run ",
+            :bright,
+            "mix deploy_ex.autoscale.status #{app_name}",
+            :reset,
             " to check the current status."
           ])
 
         {:error, :not_found} ->
           Mix.shell().error([
-            :red, "\nError: Autoscaling group '#{asg_name}' not found.\n"
+            :red,
+            "\nError: Autoscaling group '#{asg_name}' not found.\n"
           ])
-          Mix.shell().info("Ensure autoscaling is enabled for #{app_name} in your Terraform configuration.")
+
+          Mix.shell().info(
+            "Ensure autoscaling is enabled for #{app_name} in your Terraform configuration."
+          )
 
         {:error, :out_of_range} ->
           Mix.shell().error([
-            :red, "\nError: Desired capacity #{desired_capacity} is outside the min/max range.\n"
+            :red,
+            "\nError: Desired capacity #{desired_capacity} is outside the min/max range.\n"
           ])
+
           Mix.shell().info("Check the autoscaling group's min_size and max_size configuration.")
 
         {:error, reason} ->
           Mix.shell().error([
-            :red, "\nError setting desired capacity: #{reason}\n"
+            :red,
+            "\nError setting desired capacity: #{reason}\n"
           ])
       end
     end
@@ -92,7 +106,9 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Scale do
 
   defp check_aws_cli_installed do
     case System.cmd("which", ["aws"], stderr_to_stdout: true) do
-      {_, 0} -> :ok
+      {_, 0} ->
+        :ok
+
       _ ->
         Mix.raise("""
         AWS CLI is not installed or not in PATH.
@@ -108,11 +124,18 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Scale do
   end
 
   defp set_desired_capacity(asg_name, desired_capacity) do
-    case System.cmd("aws", [
-      "autoscaling", "set-desired-capacity",
-      "--auto-scaling-group-name", asg_name,
-      "--desired-capacity", to_string(desired_capacity)
-    ], stderr_to_stdout: true) do
+    case System.cmd(
+           "aws",
+           [
+             "autoscaling",
+             "set-desired-capacity",
+             "--auto-scaling-group-name",
+             asg_name,
+             "--desired-capacity",
+             to_string(desired_capacity)
+           ],
+           stderr_to_stdout: true
+         ) do
       {"", 0} ->
         :ok
 
@@ -122,7 +145,7 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Scale do
             {:error, :not_found}
 
           String.contains?(output, "outside of limits") or
-          String.contains?(output, "must be between") ->
+              String.contains?(output, "must be between") ->
             {:error, :out_of_range}
 
           true ->

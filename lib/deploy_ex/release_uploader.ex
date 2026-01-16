@@ -2,32 +2,35 @@ defmodule DeployEx.ReleaseUploader do
   alias DeployEx.ReleaseUploader.{State, AwsManager, UpdateValidator}
 
   @type opts :: [
-    aws_release_bucket: String.t,
-    aws_region: String.t
-  ]
+          aws_release_bucket: String.t(),
+          aws_region: String.t()
+        ]
 
   def lastest_app_release(remote_releases, app_names) when is_list(app_names) do
     app_names
-      |> Enum.map(fn app_name ->
-        with {:ok, release_name} <- lastest_app_release(remote_releases, app_name) do
-          {:ok, {app_name, release_name}}
-        end
-      end)
-      |> DeployEx.Utils.reduce_status_tuples
-      |> then(fn
-        {:ok, app_releases} -> {:ok, Map.new(app_releases)}
-        e -> e
-      end)
+    |> Enum.map(fn app_name ->
+      with {:ok, release_name} <- lastest_app_release(remote_releases, app_name) do
+        {:ok, {app_name, release_name}}
+      end
+    end)
+    |> DeployEx.Utils.reduce_status_tuples()
+    |> then(fn
+      {:ok, app_releases} -> {:ok, Map.new(app_releases)}
+      e -> e
+    end)
   end
 
   def lastest_app_release(remote_releases, app_name) do
     case State.lastest_remote_app_release(remote_releases, app_name) do
-      {_timestamp, _sha, file_name} -> {:ok, file_name}
+      {_timestamp, _sha, file_name} ->
+        {:ok, file_name}
+
       nil ->
-        {:error, ErrorMessage.not_found(
-          "no release found for #{app_name}",
-          %{releases: remote_releases}
-        )}
+        {:error,
+         ErrorMessage.not_found(
+           "no release found for #{app_name}",
+           %{releases: remote_releases}
+         )}
     end
   end
 
@@ -56,13 +59,15 @@ defmodule DeployEx.ReleaseUploader do
 
   def get_git_sha do
     case System.shell("git rev-parse --short HEAD") do
-      {sha, 0} -> {:ok, String.trim_trailing(sha, "\n")}
+      {sha, 0} ->
+        {:ok, String.trim_trailing(sha, "\n")}
 
       {output, code} ->
-        {:error, ErrorMessage.failed_dependency(
-          "couldn't get the git sha",
-          %{code: code, output: output}
-        )}
+        {:error,
+         ErrorMessage.failed_dependency(
+           "couldn't get the git sha",
+           %{code: code, output: output}
+         )}
     end
   end
 

@@ -2,7 +2,6 @@ defmodule DeployEx.ReleaseUploader.State do
   @enforce_keys [:local_file, :sha, :app_name]
   defstruct @enforce_keys ++ [:name, :last_sha, :remote_file, :release_apps]
 
-
   def build(local_releases, remote_releases, git_sha) do
     # BAd!
     {:ok, release_apps_map} = DeployExHelpers.release_apps_by_release_name()
@@ -30,7 +29,7 @@ defmodule DeployEx.ReleaseUploader.State do
   end
 
   defp remote_file_name_for_release(release_file_path, git_sha) do
-    current_timestamp = DateTime.utc_now() |> DateTime.to_unix
+    current_timestamp = DateTime.utc_now() |> DateTime.to_unix()
     file_name = Path.basename(release_file_path)
     app_name = app_name_from_local_release_file(release_file_path)
 
@@ -46,15 +45,15 @@ defmodule DeployEx.ReleaseUploader.State do
 
   def lastest_remote_app_release(remote_releases, app_name) do
     remote_releases
-      |> Enum.filter(&(&1 =~ ~r/^#{app_name}\//))
-      |> Enum.map(fn release_path ->
-        base_name = Path.basename(release_path)
-        [timestamp, git_sha, ^app_name, _] = String.split(base_name, "-")
+    |> Enum.filter(&(&1 =~ ~r/^#{app_name}\//))
+    |> Enum.map(fn release_path ->
+      base_name = Path.basename(release_path)
+      [timestamp, git_sha, ^app_name, _] = String.split(base_name, "-")
 
-        {String.to_integer(timestamp), git_sha, base_name}
-      end)
-      |> Enum.sort_by(fn {timestamp, _, _} -> timestamp end, :desc)
-      |> List.first
+      {String.to_integer(timestamp), git_sha, base_name}
+    end)
+    |> Enum.sort_by(fn {timestamp, _, _} -> timestamp end, :desc)
+    |> List.first()
   end
 
   def last_sha_from_remote_file(remote_releases, app_name) do

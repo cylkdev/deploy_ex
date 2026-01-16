@@ -54,16 +54,17 @@ defmodule Mix.Tasks.DeployEx.Ssh.Authorize do
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(args,
-      aliases: [f: :force, q: :quiet, d: :directory, r: :remove],
-      switches: [
-        directory: :string,
-        force: :boolean,
-        quiet: :boolean,
-        remove: :boolean,
-        ip: :string
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(args,
+        aliases: [f: :force, q: :quiet, d: :directory, r: :remove],
+        switches: [
+          directory: :string,
+          force: :boolean,
+          quiet: :boolean,
+          remove: :boolean,
+          ip: :string
+        ]
+      )
 
     opts
   end
@@ -78,7 +79,13 @@ defmodule Mix.Tasks.DeployEx.Ssh.Authorize do
 
   defp revoke_whitelist(opts, security_group_id) do
     with {:ok, current_ip} <- get_arg_id_or_current_ip(opts) do
-      Mix.shell().info(IO.ANSI.format([:yellow, "Deauthorizing current device #{current_ip} from security group #{security_group_id}", :reset]))
+      Mix.shell().info(
+        IO.ANSI.format([
+          :yellow,
+          "Deauthorizing current device #{current_ip} from security group #{security_group_id}",
+          :reset
+        ])
+      )
 
       DeployEx.AwsIpWhitelister.deauthorize(security_group_id, current_ip)
     end
@@ -86,7 +93,13 @@ defmodule Mix.Tasks.DeployEx.Ssh.Authorize do
 
   defp whitelist(opts, security_group_id) do
     with {:ok, current_ip} <- get_arg_id_or_current_ip(opts) do
-      Mix.shell().info(IO.ANSI.format([:yellow, "Authorizing current device #{current_ip} in security group #{security_group_id}", :reset]))
+      Mix.shell().info(
+        IO.ANSI.format([
+          :yellow,
+          "Authorizing current device #{current_ip} in security group #{security_group_id}",
+          :reset
+        ])
+      )
 
       DeployEx.AwsIpWhitelister.authorize(security_group_id, current_ip)
     end

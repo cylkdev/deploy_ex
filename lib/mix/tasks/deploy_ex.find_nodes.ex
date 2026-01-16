@@ -65,18 +65,19 @@ defmodule Mix.Tasks.DeployEx.FindNodes do
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(
-      args,
-      aliases: [t: :tag, f: :format, r: :region, q: :quiet],
-      switches: [
-        tag: :keep,
-        setup_complete: :boolean,
-        setup_incomplete: :boolean,
-        format: :string,
-        region: :string,
-        quiet: :boolean
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(
+        args,
+        aliases: [t: :tag, f: :format, r: :region, q: :quiet],
+        switches: [
+          tag: :keep,
+          setup_complete: :boolean,
+          setup_incomplete: :boolean,
+          format: :string,
+          region: :string,
+          quiet: :boolean
+        ]
+      )
 
     opts
   end
@@ -112,11 +113,11 @@ defmodule Mix.Tasks.DeployEx.FindNodes do
 
     Mix.shell().info(
       String.pad_trailing("Instance ID", 20) <>
-      String.pad_trailing("App", 20) <>
-      String.pad_trailing("Environment", 15) <>
-      String.pad_trailing("Setup", 8) <>
-      String.pad_trailing("State", 12) <>
-      "Public IP"
+        String.pad_trailing("App", 20) <>
+        String.pad_trailing("Environment", 15) <>
+        String.pad_trailing("Setup", 8) <>
+        String.pad_trailing("State", 12) <>
+        "Public IP"
     )
 
     Mix.shell().info(String.duplicate("-", 100))
@@ -129,11 +130,11 @@ defmodule Mix.Tasks.DeployEx.FindNodes do
 
       Mix.shell().info(
         String.pad_trailing(instance.instance_id, 20) <>
-        String.pad_trailing(app_name, 20) <>
-        String.pad_trailing(env, 15) <>
-        String.pad_trailing(setup_status, 8) <>
-        String.pad_trailing(instance.state, 12) <>
-        public_ip
+          String.pad_trailing(app_name, 20) <>
+          String.pad_trailing(env, 15) <>
+          String.pad_trailing(setup_status, 8) <>
+          String.pad_trailing(instance.state, 12) <>
+          public_ip
       )
     end)
 

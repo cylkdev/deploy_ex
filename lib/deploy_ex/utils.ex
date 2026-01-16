@@ -67,7 +67,10 @@ defmodule DeployEx.Utils do
   end
 
   def upper_title_case(string) do
-    string |> Macro.underscore |> String.split(~r/_|-/) |> Enum.map_join(" ", &String.capitalize/1)
+    string
+    |> Macro.underscore()
+    |> String.split(~r/_|-/)
+    |> Enum.map_join(" ", &String.capitalize/1)
   end
 
   def run_command_with_return(command, directory, extra_opts \\ []) do
@@ -77,8 +80,12 @@ defmodule DeployEx.Utils do
     ]
 
     case System.shell(command, Keyword.merge(opts, extra_opts)) do
-      {output, 0} -> {:ok, output}
-      {error, code} -> {:error, ErrorMessage.internal_server_error("couldn't run #{command}", %{error: error, code: code})}
+      {output, 0} ->
+        {:ok, output}
+
+      {error, code} ->
+        {:error,
+         ErrorMessage.internal_server_error("couldn't run #{command}", %{error: error, code: code})}
     end
   end
 
@@ -91,8 +98,12 @@ defmodule DeployEx.Utils do
     ]
 
     case System.shell(command, Keyword.merge(opts, extra_opts)) do
-      {output, 0} -> {:ok, output}
-      {error, code} -> {:error, ErrorMessage.internal_server_error("couldn't run #{command}", %{error: error, code: code})}
+      {output, 0} ->
+        {:ok, output}
+
+      {error, code} ->
+        {:error,
+         ErrorMessage.internal_server_error("couldn't run #{command}", %{error: error, code: code})}
     end
   end
 
@@ -108,13 +119,14 @@ defmodule DeployEx.Utils do
       Exexec.start_link()
     end
 
-    port = Port.open({:spawn, command}, [
-      :nouse_stdio,
-      :exit_status,
-      {:cd, directory}
-    ])
+    port =
+      Port.open({:spawn, command}, [
+        :nouse_stdio,
+        :exit_status,
+        {:cd, directory}
+      ])
 
-    Exexec.manage(port, [
+    Exexec.manage(port,
       monitor: true,
       sync: true,
       stdin: true,
@@ -122,10 +134,11 @@ defmodule DeployEx.Utils do
       cd: directory,
       stderr: :stdout,
       stdout: fn _, _, c -> Enum.into([c], IO.stream(:stdio, :line)) end
-    ])
+    )
 
     receive do
-      {^port, {:exit_status, 0}} -> :ok
+      {^port, {:exit_status, 0}} ->
+        :ok
 
       {^port, {:exit_status, code}} ->
         {:error, ErrorMessage.internal_server_error("couldn't run #{command}", %{code: code})}

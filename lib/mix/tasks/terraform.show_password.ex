@@ -19,14 +19,16 @@ defmodule Mix.Tasks.Terraform.ShowPassword do
 
     with :ok <- DeployExHelpers.check_in_umbrella(),
          {:ok, state} <- DeployEx.TerraformState.read_state(directory),
-         database_name when not is_nil(database_name) <- List.first(extra_args) || show_database_selection(state),
-         {:ok, password} <- DeployEx.TerraformState.get_resource_attribute_by_tag(
-           state,
-           "aws_db_instance",
-           "Name",
-           database_name,
-           "password"
-         ) do
+         database_name when not is_nil(database_name) <-
+           List.first(extra_args) || show_database_selection(state),
+         {:ok, password} <-
+           DeployEx.TerraformState.get_resource_attribute_by_tag(
+             state,
+             "aws_db_instance",
+             "Name",
+             database_name,
+             "password"
+           ) do
       Mix.shell().info([:green, "Password for #{database_name}: ", :reset, password])
     else
       nil -> Mix.raise("No database name provided")
@@ -36,8 +38,12 @@ defmodule Mix.Tasks.Terraform.ShowPassword do
 
   defp show_database_selection(state) do
     case get_databases_from_state(state) do
-      [] -> nil
-      [single_db] -> single_db
+      [] ->
+        nil
+
+      [single_db] ->
+        single_db
+
       multiple_dbs ->
         [choice] = DeployExHelpers.prompt_for_choice(multiple_dbs)
         choice

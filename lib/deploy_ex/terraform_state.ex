@@ -59,7 +59,8 @@ defmodule DeployEx.TerraformState do
           end
         end)
 
-      _ -> {:error, "Invalid Terraform state format"}
+      _ ->
+        {:error, "Invalid Terraform state format"}
     end
   end
 
@@ -76,6 +77,7 @@ defmodule DeployEx.TerraformState do
         Enum.find_value(resources, {:error, "Resource not found"}, fn resource ->
           if resource["type"] == resource_type do
             tags = get_in(resource, ["instances", Access.at(0), "attributes", "tags"]) || %{}
+
             if tags[tag_key] == tag_value do
               get_in(resource, ["instances", Access.at(0), "attributes", attribute])
               |> case do
@@ -86,7 +88,8 @@ defmodule DeployEx.TerraformState do
           end
         end)
 
-      _ -> {:error, "Invalid Terraform state format"}
+      _ ->
+        {:error, "Invalid Terraform state format"}
     end
   end
 end

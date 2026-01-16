@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Ansible.Setup do
+defmodule Mix.Tasks.DeployEx.Ansible.Setup do
   use Mix.Task
 
   @ansible_default_path DeployEx.Config.ansible_folder_path()
@@ -19,9 +19,9 @@ defmodule Mix.Tasks.Ansible.Setup do
 
   ## Example
   ```bash
-  mix ansible.setup
-  mix ansible.setup --only app1 --only app2
-  mix ansible.setup --except app3
+  mix deploy_ex.ansible.setup
+  mix deploy_ex.ansible.setup --only app1 --only app2
+  mix deploy_ex.ansible.setup --except app3
   ```
 
   ## Options
@@ -35,12 +35,14 @@ defmodule Mix.Tasks.Ansible.Setup do
   def run(args) do
     with :ok <- DeployExHelpers.check_in_umbrella(),
          :ok <- DeployExHelpers.ensure_ansible_installed() do
-      opts = args
+      opts =
+        args
         |> parse_args
         |> Keyword.put_new(:directory, @ansible_default_path)
         |> Keyword.put_new(:parallel, @default_setup_max_concurrency)
 
-      opts = opts
+      opts =
+        opts
         |> Keyword.put(:only, Keyword.get_values(opts, :only))
         |> Keyword.put(:except, Keyword.get_values(opts, :except))
 
@@ -50,33 +52,38 @@ defmodule Mix.Tasks.Ansible.Setup do
       relative_directory = String.replace(Path.absname(opts[:directory]), "#{File.cwd!()}/", "")
 
       opts[:directory]
-        |> Path.join("setup/*.yaml")
-        |> Path.wildcard
-        |> Enum.map(&Path.relative_to(&1, relative_directory))
-        |> DeployExHelpers.filter_only_or_except(opts[:only], opts[:except])
-        |> Task.async_stream(fn setup_file ->
+      |> Path.join("setup/*.yaml")
+      |> Path.wildcard()
+      |> Enum.map(&Path.relative_to(&1, relative_directory))
+      |> DeployExHelpers.filter_only_or_except(opts[:only], opts[:except])
+      |> Task.async_stream(
+        fn setup_file ->
           DeployEx.Utils.run_command(
             "ansible-playbook #{setup_file} #{ansible_args}",
             opts[:directory]
           )
-        end, max_concurrency: opts[:parallel], timeout: :timer.minutes(30))
-        |> Stream.run
+        end,
+        max_concurrency: opts[:parallel],
+        timeout: :timer.minutes(30)
+      )
+      |> Stream.run()
 
       Mix.shell().info([:green, "Finished setting up nodes"])
     end
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(args,
-      aliases: [f: :force, q: :quit, d: :directory],
-      switches: [
-        directory: :string,
-        only: :keep,
-        except: :keep,
-        force: :boolean,
-        quiet: :boolean
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(args,
+        aliases: [f: :force, q: :quit, d: :directory],
+        switches: [
+          directory: :string,
+          only: :keep,
+          except: :keep,
+          force: :boolean,
+          quiet: :boolean
+        ]
+      )
 
     opts
   end

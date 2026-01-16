@@ -52,9 +52,9 @@ defmodule Mix.Tasks.DeployEx.Remake do
 
   defp node_name_as_only_arg(node_name, args) do
     args
-      |> Enum.join(" ")
-      |> String.replace(node_name, "--only #{node_name}")
-      |> String.split(" ")
+    |> Enum.join(" ")
+    |> String.replace(node_name, "--only #{node_name}")
+    |> String.split(" ")
   end
 
   defp run_command(command, args) do

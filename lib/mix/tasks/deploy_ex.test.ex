@@ -42,7 +42,6 @@
 #       |> Keyword.put(:only, Keyword.get_values(opts, :only))
 #       |> Keyword.put(:except, Keyword.get_values(opts, :except))
 
-
 #     with :ok <- DeployExHelpers.check_in_umbrella(),
 #          {:ok, releases} <- DeployExHelpers.fetch_mix_releases(),
 #          {:ok, remote_releases} <- ReleaseUploader.fetch_all_remote_releases(opts),

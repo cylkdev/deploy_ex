@@ -24,15 +24,22 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
   """
 
   def run(args) do
-    {opts, remaining_args} = OptionParser.parse!(args,
-      aliases: [e: :environment],
-      switches: [environment: :string]
-    )
+    {opts, remaining_args} =
+      OptionParser.parse!(args,
+        aliases: [e: :environment],
+        switches: [environment: :string]
+      )
 
-    app_name = case remaining_args do
-      [name | _] -> name
-      [] -> Mix.raise("Application name is required. Usage: mix deploy_ex.autoscale.status <app_name>")
-    end
+    app_name =
+      case remaining_args do
+        [name | _] ->
+          name
+
+        [] ->
+          Mix.raise(
+            "Application name is required. Usage: mix deploy_ex.autoscale.status <app_name>"
+          )
+      end
 
     environment = Keyword.get(opts, :environment, Mix.env() |> to_string())
 
@@ -47,8 +54,14 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
           display_status(asg_data, asg_name)
 
         {:error, :not_found} ->
-          Mix.shell().info([:yellow, "\nAutoscaling is not enabled for #{app_name} or the group does not exist."])
-          Mix.shell().info("To enable autoscaling, set enable_autoscaling = true in your Terraform variables.")
+          Mix.shell().info([
+            :yellow,
+            "\nAutoscaling is not enabled for #{app_name} or the group does not exist."
+          ])
+
+          Mix.shell().info(
+            "To enable autoscaling, set enable_autoscaling = true in your Terraform variables."
+          )
 
         {:error, reason} ->
           Mix.shell().error([:red, "\nError fetching autoscaling status: #{reason}"])
@@ -58,7 +71,9 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
 
   defp check_aws_cli_installed do
     case System.cmd("which", ["aws"], stderr_to_stdout: true) do
-      {_, 0} -> :ok
+      {_, 0} ->
+        :ok
+
       _ ->
         Mix.raise("""
         AWS CLI is not installed or not in PATH.
@@ -74,11 +89,18 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
   end
 
   defp describe_autoscaling_group(asg_name) do
-    case System.cmd("aws", [
-      "autoscaling", "describe-auto-scaling-groups",
-      "--auto-scaling-group-names", asg_name,
-      "--output", "json"
-    ], stderr_to_stdout: true) do
+    case System.cmd(
+           "aws",
+           [
+             "autoscaling",
+             "describe-auto-scaling-groups",
+             "--auto-scaling-group-names",
+             asg_name,
+             "--output",
+             "json"
+           ],
+           stderr_to_stdout: true
+         ) do
       {output, 0} ->
         case Jason.decode(output) do
           {:ok, %{"AutoScalingGroups" => [asg | _]}} ->
@@ -108,21 +130,37 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
     instance_count = length(instances)
 
     Mix.shell().info([
-      :green, "\n",
+      :green,
+      "\n",
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n",
-      :bright, "Autoscaling Group: ", :normal, asg_name, "\n",
+      :bright,
+      "Autoscaling Group: ",
+      :normal,
+      asg_name,
+      "\n",
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     ])
 
     Mix.shell().info([
-      :cyan, "Capacity:\n",
-      :reset, "  Desired: ", :bright, "#{desired}", :reset, "\n",
+      :cyan,
+      "Capacity:\n",
+      :reset,
+      "  Desired: ",
+      :bright,
+      "#{desired}",
+      :reset,
+      "\n",
       "  Minimum: #{min_size}\n",
       "  Maximum: #{max_size}\n"
     ])
 
     Mix.shell().info([
-      :cyan, "\nCurrent Instances: ", :bright, "#{instance_count}", :reset, "\n"
+      :cyan,
+      "\nCurrent Instances: ",
+      :bright,
+      "#{instance_count}",
+      :reset,
+      "\n"
     ])
 
     if instance_count > 0 do
@@ -132,15 +170,24 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
         health_status = instance["HealthStatus"]
         az = instance["AvailabilityZone"]
 
-        state_color = case lifecycle_state do
-          "InService" -> :green
-          "Pending" -> :yellow
-          _ -> :red
-        end
+        state_color =
+          case lifecycle_state do
+            "InService" -> :green
+            "Pending" -> :yellow
+            _ -> :red
+          end
 
         Mix.shell().info([
-          "  • ", state_color, instance_id, :reset,
-          " (", lifecycle_state, ", ", health_status, ") - ", az
+          "  • ",
+          state_color,
+          instance_id,
+          :reset,
+          " (",
+          lifecycle_state,
+          ", ",
+          health_status,
+          ") - ",
+          az
         ])
       end)
     else
@@ -150,22 +197,31 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
     display_scaling_policies(asg_name)
 
     Mix.shell().info([
-      :green, "\n",
+      :green,
+      "\n",
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     ])
   end
 
   defp display_scaling_policies(asg_name) do
-    case System.cmd("aws", [
-      "autoscaling", "describe-policies",
-      "--auto-scaling-group-name", asg_name,
-      "--output", "json"
-    ], stderr_to_stdout: true) do
+    case System.cmd(
+           "aws",
+           [
+             "autoscaling",
+             "describe-policies",
+             "--auto-scaling-group-name",
+             asg_name,
+             "--output",
+             "json"
+           ],
+           stderr_to_stdout: true
+         ) do
       {output, 0} ->
         case Jason.decode(output) do
           {:ok, %{"ScalingPolicies" => [_ | _] = policies}} ->
             Mix.shell().info([
-              :cyan, "\nScaling Policies:\n"
+              :cyan,
+              "\nScaling Policies:\n"
             ])
 
             Enum.each(policies, fn policy ->
@@ -180,7 +236,10 @@ defmodule Mix.Tasks.DeployEx.Autoscale.Status do
                   target_value = target_config["TargetValue"]
 
                   Mix.shell().info([
-                    "    Target: ", :bright, "#{target_value}%", :reset,
+                    "    Target: ",
+                    :bright,
+                    "#{target_value}%",
+                    :reset,
                     " #{metric_type}"
                   ])
                 end

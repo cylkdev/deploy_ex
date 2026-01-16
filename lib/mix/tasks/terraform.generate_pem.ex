@@ -1,4 +1,3 @@
-
 defmodule Mix.Tasks.Terraform.GeneratePem do
   @moduledoc """
   Extracts the PEM file and key name from the Terraform state and saves it to a file.
@@ -26,9 +25,15 @@ defmodule Mix.Tasks.Terraform.GeneratePem do
     opts = args |> parse_args() |> Keyword.put_new(:directory, @terraform_default_path)
 
     with {:ok, state} <- TerraformState.read_state(opts[:directory]),
-         {:ok, private_key} <- TerraformState.get_resource_attribute(state, "tls_private_key", "key_pair", "private_key_pem"),
-         {:ok, key_name} <- TerraformState.get_resource_attribute(state, "aws_key_pair", "key_pair", "key_name") do
-
+         {:ok, private_key} <-
+           TerraformState.get_resource_attribute(
+             state,
+             "tls_private_key",
+             "key_pair",
+             "private_key_pem"
+           ),
+         {:ok, key_name} <-
+           TerraformState.get_resource_attribute(state, "aws_key_pair", "key_pair", "key_name") do
       # If no output file is provided, default to `<key_name>.pem`
       output_file = Path.join(opts[:directory], opts[:output_file] || "#{key_name}.pem")
 
@@ -55,19 +60,21 @@ defmodule Mix.Tasks.Terraform.GeneratePem do
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(args,
-      aliases: [d: :directory, o: :output_file],
-      switches: [
-        directory: :string,
-        output_file: :string
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(args,
+        aliases: [d: :directory, o: :output_file],
+        switches: [
+          directory: :string,
+          output_file: :string
+        ]
+      )
 
     opts
   end
 
   defp save_pem_file(private_key, output_file) do
     File.write!(output_file, private_key)
-    File.chmod(output_file, 0o600)  # Secure the file (read/write owner only)
+    # Secure the file (read/write owner only)
+    File.chmod(output_file, 0o600)
   end
 end

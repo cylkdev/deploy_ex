@@ -29,15 +29,23 @@ defmodule Mix.Tasks.DeployEx.ViewCurrentRelease do
         Mix.raise("app_name is required. Example: mix deploy_ex.view_current_release my_app")
       else
         with {:ok, app_name} <- DeployExHelpers.find_project_name(extra_args),
-             {:ok, releases} <- DeployExHelpers.run_ssh_command_with_return(
+             {:ok, releases} <-
+               DeployExHelpers.run_ssh_command_with_return(
                  opts[:directory],
                  opts[:pem],
                  app_name,
                  DeployEx.ReleaseController.current_release(),
                  opts
                ) do
-          releases |> Enum.with_index |> Enum.each(fn {current_release, index} ->
-            Mix.shell().info([:green, "\nCurrent release for #{app_name} - #{index}:\n  ", :yellow, current_release])
+          releases
+          |> Enum.with_index()
+          |> Enum.each(fn {current_release, index} ->
+            Mix.shell().info([
+              :green,
+              "\nCurrent release for #{app_name} - #{index}:\n  ",
+              :yellow,
+              current_release
+            ])
           end)
         else
           {:ok, []} ->

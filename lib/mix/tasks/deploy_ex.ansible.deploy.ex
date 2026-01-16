@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Ansible.Deploy do
+defmodule Mix.Tasks.DeployEx.Ansible.Deploy do
   use Mix.Task
 
   alias DeployEx.ReleaseUploader
@@ -39,13 +39,15 @@ defmodule Mix.Tasks.Ansible.Deploy do
          :ok <- DeployExHelpers.ensure_ansible_installed() do
       opts = parse_args(args)
 
-      opts = opts
+      opts =
+        opts
         |> Keyword.put_new(:directory, @ansible_default_path)
         |> Keyword.put_new(:parallel, @playbook_max_concurrency)
         |> Keyword.put(:only, Keyword.get_values(opts, :only))
         |> Keyword.put(:except, Keyword.get_values(opts, :except))
 
-      ansible_args = args
+      ansible_args =
+        args
         |> DeployEx.Ansible.parse_args()
         |> then(fn
           "" -> []
@@ -54,68 +56,77 @@ defmodule Mix.Tasks.Ansible.Deploy do
 
       DeployExHelpers.check_file_exists!(Path.join(opts[:directory], "aws_ec2.yaml"))
 
-      res = opts[:directory]
+      res =
+        opts[:directory]
         |> Path.join("playbooks/*.yaml")
-        |> Path.wildcard
+        |> Path.wildcard()
         |> Enum.map(&strip_directory(&1, opts[:directory]))
         |> DeployExHelpers.filter_only_or_except(opts[:only], opts[:except])
         |> reject_playbook_without_local_release(opts[:only_local_release])
         |> reject_playbook_without_mix_exs_release
-        |> Task.async_stream(fn host_playbook ->
-          host_playbook
+        |> Task.async_stream(
+          fn host_playbook ->
+            host_playbook
             |> build_ansible_playbook_command(opts)
             |> Kernel.++(ansible_args)
             |> Enum.join(" ")
             |> DeployEx.Utils.run_command(opts[:directory])
-        end, max_concurrency: opts[:parallel], timeout: @playbook_timeout)
-        |> DeployEx.Utils.reduce_status_tuples
+          end,
+          max_concurrency: opts[:parallel],
+          timeout: @playbook_timeout
+        )
+        |> DeployEx.Utils.reduce_status_tuples()
 
       case res do
-        {:ok, []} -> Mix.shell().info([:yellow, "Nothing to deploy"])
+        {:ok, []} ->
+          Mix.shell().info([:yellow, "Nothing to deploy"])
 
         {:error, [h | tail]} ->
           Enum.each(tail, &Mix.shell().error(to_string(&1)))
 
           Mix.raise(to_string(h))
 
-        _ -> :ok
+        _ ->
+          :ok
       end
     end
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(args,
-      aliases: [f: :force, q: :quit, d: :directory, l: :only_local_release, t: :target_sha],
-      switches: [
-        directory: :string,
-        quiet: :boolean,
-        only: :keep,
-        except: :keep,
-        copy_json_env_file: :string,
-        parallel: :integer,
-        only_local_release: :boolean,
-        target_sha: :string
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(args,
+        aliases: [f: :force, q: :quit, d: :directory, l: :only_local_release, t: :target_sha],
+        switches: [
+          force: :boolean,
+          directory: :string,
+          quiet: :boolean,
+          only: :keep,
+          except: :keep,
+          copy_json_env_file: :string,
+          parallel: :integer,
+          only_local_release: :boolean,
+          target_sha: :string
+        ]
+      )
 
     opts
   end
 
   def build_ansible_playbook_command(host_playbook, opts) do
     ["ansible-playbook", host_playbook]
-      |> add_copy_env_file_flag(opts)
-      |> add_target_release_sha(opts)
+    |> add_copy_env_file_flag(opts)
+    |> add_target_release_sha(opts)
   end
 
   defp add_copy_env_file_flag(command_list, opts) do
     if opts[:copy_json_env_file] do
-      json_file_path = case Path.type(opts[:copy_json_env_file]) do
-        :absolute -> opts[:copy_json_env_file]
-        :relative -> Path.join(File.cwd!(), opts[:copy_json_env_file])
-      end
+      json_file_path =
+        case Path.type(opts[:copy_json_env_file]) do
+          :absolute -> opts[:copy_json_env_file]
+          :relative -> Path.join(File.cwd!(), opts[:copy_json_env_file])
+        end
 
       DeployExHelpers.check_file_exists!(json_file_path)
-
 
       command_list ++ ["--extra-vars @#{json_file_path}"]
     else
@@ -137,13 +148,16 @@ defmodule Mix.Tasks.Ansible.Deploy do
 
   defp reject_playbook_without_local_release(host_playbook_paths, true) do
     case ReleaseUploader.fetch_all_local_releases() do
-      {:error, %ErrorMessage{code: :not_found}} -> []
+      {:error, %ErrorMessage{code: :not_found}} ->
+        []
+
       {:ok, local_releases} ->
         releases = local_release_app_names(local_releases)
 
         Enum.filter(host_playbook_paths, &has_local_release?(&1, releases))
 
-      _ -> host_playbook_paths
+      _ ->
+        host_playbook_paths
     end
   end
 
@@ -153,10 +167,12 @@ defmodule Mix.Tasks.Ansible.Deploy do
 
   defp local_release_app_names(local_releases) do
     Enum.map(local_releases, fn local_release ->
-      case local_release |> Path.basename |> String.split("-") do
-        [_timestamp, _sha, app_name, _version] -> app_name
+      case local_release |> Path.basename() |> String.split("-") do
+        [_timestamp, _sha, app_name, _version] ->
+          app_name
 
-        [app_name, _version] -> app_name
+        [app_name, _version] ->
+          app_name
 
         _ ->
           Mix.shell().error("Couldn't find app name from local release #{local_release}")
@@ -171,10 +187,11 @@ defmodule Mix.Tasks.Ansible.Deploy do
 
   defp reject_playbook_without_mix_exs_release(host_playbooks) do
     case DeployExHelpers.fetch_mix_releases() do
-      {:error, e} -> Mix.raise(e)
+      {:error, e} ->
+        Mix.raise(e)
 
       {:ok, releases} ->
-        release_names = releases |> Keyword.keys |> Enum.map(&to_string/1)
+        release_names = releases |> Keyword.keys() |> Enum.map(&to_string/1)
 
         Enum.filter(host_playbooks, fn playbook ->
           Enum.any?(release_names, &(playbook_release_name(playbook) =~ &1))
@@ -183,6 +200,6 @@ defmodule Mix.Tasks.Ansible.Deploy do
   end
 
   defp playbook_release_name(playbook) do
-    playbook |> Path.basename |> String.replace(~r/\.[^\.]*$/, "")
+    playbook |> Path.basename() |> String.replace(~r/\.[^\.]*$/, "")
   end
 end

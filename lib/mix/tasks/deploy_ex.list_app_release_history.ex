@@ -28,20 +28,23 @@ defmodule Mix.Tasks.DeployEx.ListAppReleaseHistory do
       opts = Keyword.put_new(opts, :directory, @terraform_default_path)
 
       if extra_args === [] do
-        Mix.raise("app is required to be passed in. Example: mix deploy_ex.list_app_release my_app")
+        Mix.raise(
+          "app is required to be passed in. Example: mix deploy_ex.list_app_release my_app"
+        )
       else
         [app_name] = extra_args
         {machine_opts, opts} = Keyword.split(opts, [:resource_group])
 
         case DeployExHelpers.run_ssh_command_with_return(
-          opts[:directory],
-          opts[:pem],
-          app_name,
-          DeployEx.ReleaseController.list_releases(),
-          machine_opts
-        ) do
+               opts[:directory],
+               opts[:pem],
+               app_name,
+               DeployEx.ReleaseController.list_releases(),
+               machine_opts
+             ) do
           {:ok, [latest_releases]} ->
             Mix.shell().info([:green, "\nLatest releases for #{app_name}:"])
+
             Enum.each(String.split(latest_releases, "\n"), fn release ->
               Mix.shell().info([:yellow, "  #{release}"])
             end)

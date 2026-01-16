@@ -16,7 +16,8 @@ defmodule Mix.Tasks.Terraform.Plan do
   """
 
   def run(args) do
-    opts = args
+    opts =
+      args
       |> parse_args
       |> Keyword.put_new(:directory, @terraform_default_path)
 
@@ -29,15 +30,16 @@ defmodule Mix.Tasks.Terraform.Plan do
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(args,
-      aliases: [f: :force, q: :quit, d: :directory],
-      switches: [
-        directory: :string,
-        force: :boolean,
-        quiet: :boolean,
-        var_file: :string
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(args,
+        aliases: [f: :force, q: :quit, d: :directory],
+        switches: [
+          directory: :string,
+          force: :boolean,
+          quiet: :boolean,
+          var_file: :string
+        ]
+      )
 
     opts
   end

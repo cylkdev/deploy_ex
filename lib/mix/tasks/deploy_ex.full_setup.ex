@@ -32,7 +32,7 @@ defmodule Mix.Tasks.DeployEx.FullSetup do
   - `auto_pull_aws` - Automatically pull AWS credentials from host machine (alias: `a`)
   """
 
-  alias Mix.Tasks.{Ansible, Terraform}
+  alias Mix.Tasks.{DeployEx.Ansible, Terraform}
 
   @pre_setup_commands [
     Terraform.CreateStateBucket,
@@ -58,9 +58,12 @@ defmodule Mix.Tasks.DeployEx.FullSetup do
 
           if !opts[:skip_setup] do
             Mix.shell().info([
-              :green, "* sleeping for ", :reset,
+              :green,
+              "* sleeping for ",
+              :reset,
               @time_between_pre_post |> div(1000) |> to_string,
-              :green, " seconds to allow setup"
+              :green,
+              " seconds to allow setup"
             ])
 
             Process.sleep(@time_between_pre_post)
@@ -68,19 +71,21 @@ defmodule Mix.Tasks.DeployEx.FullSetup do
 
           ping_and_run_post_setup(args)
 
-        e -> Mix.raise(e)
+        e ->
+          Mix.raise(e)
       end
     end
   end
 
   defp parse_args(args) do
-    {opts, _extra_args} = OptionParser.parse!(args,
-      aliases: [k: :skip_deploy, p: :skip_setup],
-      switches: [
-        skip_setup: :boolean,
-        skip_deploy: :boolean
-      ]
-    )
+    {opts, _extra_args} =
+      OptionParser.parse!(args,
+        aliases: [k: :skip_deploy, p: :skip_setup],
+        switches: [
+          skip_setup: :boolean,
+          skip_deploy: :boolean
+        ]
+      )
 
     opts
   end
@@ -99,10 +104,10 @@ defmodule Mix.Tasks.DeployEx.FullSetup do
 
     with :ok <- Ansible.Ping.run(args),
          :ok <- run_setup(opts, args) do
-
       if !opts[:skip_deploy] do
         Mix.shell().info([
-          :green, "* running post setup"
+          :green,
+          "* running post setup"
         ])
 
         run_commands(@post_setup_comands, args)
@@ -113,7 +118,8 @@ defmodule Mix.Tasks.DeployEx.FullSetup do
   defp run_setup(opts, args) do
     if !opts[:skip_setup] do
       Mix.shell().info([
-        :green, "* running instance setup"
+        :green,
+        "* running instance setup"
       ])
 
       Ansible.Setup.run(args)

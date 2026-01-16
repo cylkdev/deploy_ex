@@ -69,7 +69,12 @@ defmodule Mix.Tasks.DeployEx.Ssh do
 
     with :ok <- DeployExHelpers.check_in_umbrella(),
          {:ok, app_name} <- DeployExHelpers.find_project_name(app_params),
-         {:ok, instance_ips} <- DeployEx.AwsMachine.find_instance_ips(DeployExHelpers.project_name(), app_name, machine_opts) do
+         {:ok, instance_ips} <-
+           DeployEx.AwsMachine.find_instance_ips(
+             DeployExHelpers.project_name(),
+             app_name,
+             machine_opts
+           ) do
       if opts[:list] do
         list_instances(app_name, instance_ips)
       else
@@ -83,7 +88,16 @@ defmodule Mix.Tasks.DeployEx.Ssh do
 
   defp parse_args(args) do
     OptionParser.parse!(args,
-      aliases: [f: :force, q: :quiet, d: :directory, s: :short, n: :log_count, p: :pem, i: :index, l: :list],
+      aliases: [
+        f: :force,
+        q: :quiet,
+        d: :directory,
+        s: :short,
+        n: :log_count,
+        p: :pem,
+        i: :index,
+        l: :list
+      ],
       switches: [
         directory: :string,
         force: :boolean,
@@ -109,9 +123,14 @@ defmodule Mix.Tasks.DeployEx.Ssh do
 
   defp list_instances(app_name, instance_ips) do
     Mix.shell().info([
-      :green, "\n",
+      :green,
+      "\n",
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n",
-      :bright, "Instances for: ", :normal, app_name, "\n",
+      :bright,
+      "Instances for: ",
+      :normal,
+      app_name,
+      "\n",
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
     ])
 
@@ -119,15 +138,28 @@ defmodule Mix.Tasks.DeployEx.Ssh do
     |> Enum.with_index()
     |> Enum.each(fn {ip, index} ->
       Mix.shell().info([
-        :cyan, "  [#{index}] ", :reset, ip
+        :cyan,
+        "  [#{index}] ",
+        :reset,
+        ip
       ])
     end)
 
     Mix.shell().info([
-      :green, "\n",
+      :green,
+      "\n",
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n",
-      :reset, "Total instances: ", :bright, "#{length(instance_ips)}", :reset, "\n",
-      "Use ", :cyan, "--index N", :reset, " to connect to a specific instance\n"
+      :reset,
+      "Total instances: ",
+      :bright,
+      "#{length(instance_ips)}",
+      :reset,
+      "\n",
+      "Use ",
+      :cyan,
+      "--index N",
+      :reset,
+      " to connect to a specific instance\n"
     ])
   end
 
@@ -136,35 +168,39 @@ defmodule Mix.Tasks.DeployEx.Ssh do
   end
 
   defp connect_to_host(app_name, instance_ips, pem_file_path, opts) do
-    instance_ip = cond do
-      opts[:index] !== nil ->
-        case Enum.at(instance_ips, opts[:index]) do
-          nil ->
-            Mix.raise("Instance index #{opts[:index]} not found. Available: 0..#{length(instance_ips) - 1}")
-          ip ->
-            ip
-        end
+    instance_ip =
+      cond do
+        opts[:index] !== nil ->
+          case Enum.at(instance_ips, opts[:index]) do
+            nil ->
+              Mix.raise(
+                "Instance index #{opts[:index]} not found. Available: 0..#{length(instance_ips) - 1}"
+              )
 
-      opts[:short] ->
-        Enum.random(instance_ips)
+            ip ->
+              ip
+          end
 
-      true ->
-        DeployExHelpers.prompt_for_choice(instance_ips, false)
-    end
+        opts[:short] ->
+          Enum.random(instance_ips)
+
+        true ->
+          DeployExHelpers.prompt_for_choice(instance_ips, false)
+      end
 
     log_ssh_command(app_name, pem_file_path, instance_ip, opts)
 
-        # When using Rambo re-enable
-        # Mix.shell().info([
-        #   :green, "Attempting to connect to ",
-        #   :reset, app_name, :green, " at ",
-        #   :reset, ip, :green, " using pem file ",
-        #   :reset, pem_file_path
-        # ])
+    # When using Rambo re-enable
+    # Mix.shell().info([
+    #   :green, "Attempting to connect to ",
+    #   :reset, app_name, :green, " at ",
+    #   :reset, ip, :green, " using pem file ",
+    #   :reset, pem_file_path
+    # ])
 
-        # with {:error, e} <- DeployExHelpers.run_command_with_input("ssh -i #{pem_file_path} ec2-user@#{ip}", "") do
-        #   Mix.shell().error(to_string(e))
-        # end
+    # with {:error, e} <- DeployExHelpers.run_command_with_input("ssh -i #{pem_file_path} ec2-user@#{ip}", "") do
+    #   Mix.shell().error(to_string(e))
+    # end
   end
 
   defp log_ssh_command(app_name, pem_file_path, ip, opts) do
@@ -174,10 +210,17 @@ defmodule Mix.Tasks.DeployEx.Ssh do
       Mix.shell().info("ssh -i #{pem_file_path} ec2-user@#{ip} #{command}")
     else
       Mix.shell().info([
-        :green, "Use the following comand to connect to ",
-        :reset, app_name || "Unknown", :green, " \"",
-        :reset, "ssh -i #{pem_file_path} ec2-user@#{ip} ", command,
-        :green, "\""
+        :green,
+        "Use the following comand to connect to ",
+        :reset,
+        app_name || "Unknown",
+        :green,
+        " \"",
+        :reset,
+        "ssh -i #{pem_file_path} ec2-user@#{ip} ",
+        command,
+        :green,
+        "\""
       ])
     end
   end
