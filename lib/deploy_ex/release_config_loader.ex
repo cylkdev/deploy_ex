@@ -2,7 +2,7 @@ defmodule DeployEx.ReleaseConfigLoader do
   alias DeployEx.AwsSecretsManager
 
   def load_database_configs(opts) do
-    path = Keyword.get(opts, :path, "./deploys/terraform/**/*.db.json")
+    path = Keyword.get(opts, :path, "./deploys/terraform/.generated/*.db.json")
     config_file = opts[:config_file]
     schema_file = opts[:schema_file]
 
