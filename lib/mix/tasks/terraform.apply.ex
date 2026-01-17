@@ -13,7 +13,6 @@ defmodule Mix.Tasks.Terraform.Apply do
   - `quiet` - Don't output messages
   - `auto_approve` - Automatically say yes when applying
   - `var-file` - Set a specific variables file
-  - `plan` - Set a specific plan file
   """
 
   def run(args) do
@@ -38,8 +37,7 @@ defmodule Mix.Tasks.Terraform.Apply do
           directory: :string,
           force: :boolean,
           quiet: :boolean,
-          auto_approve: :boolean,
-          plan: :string
+          auto_approve: :boolean
         ]
       )
 
@@ -47,16 +45,9 @@ defmodule Mix.Tasks.Terraform.Apply do
   end
 
   defp run_command(args, opts) do
-    {plan, opts} = Keyword.pop(opts, :plan)
+    cmd = "apply #{DeployEx.Terraform.parse_args(args, :apply)}"
+    cmd = if opts[:auto_approve], do: "#{cmd} --auto-approve", else: cmd
 
-    cmd = "apply #{plan}"
-
-    cmd =
-      case DeployEx.Terraform.parse_args(args, :apply) do
-        "" -> cmd
-        args -> "#{cmd} #{args}"
-      end
-
-    DeployEx.Terraform.run_command_with_input(cmd |> IO.inspect(), opts[:directory])
+    DeployEx.Terraform.run_command_with_input(cmd, opts[:directory])
   end
 end
