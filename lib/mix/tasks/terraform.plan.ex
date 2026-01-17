@@ -13,6 +13,7 @@ defmodule Mix.Tasks.Terraform.Plan do
   - `quiet` - Don't output messages
   - `auto_approve` - Automatically say yes when applying
   - `var-file` - Set a specific variables file
+  - `out` - Set a specific output file
   """
 
   def run(args) do
@@ -37,7 +38,8 @@ defmodule Mix.Tasks.Terraform.Plan do
           directory: :string,
           force: :boolean,
           quiet: :boolean,
-          var_file: :string
+          var_file: :string,
+          out: :string
         ]
       )
 
@@ -45,8 +47,12 @@ defmodule Mix.Tasks.Terraform.Plan do
   end
 
   defp terraform_plan(args, opts) do
+    cmd = "plan #{DeployEx.Terraform.parse_args(args, :plan)}"
+
+    cmd = if opts[:out], do: "#{cmd} --out #{opts[:out]}", else: cmd
+
     DeployEx.Terraform.run_command_with_input(
-      "plan #{DeployEx.Terraform.parse_args(args, :plan)}",
+      cmd,
       opts[:directory]
     )
   end
