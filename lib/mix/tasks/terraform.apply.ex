@@ -49,11 +49,8 @@ defmodule Mix.Tasks.Terraform.Apply do
   defp run_command(args, opts) do
     cmd = "apply #{DeployEx.Terraform.parse_args(args, :apply)}"
 
-    cond do
-      opts[:plan] -> "#{cmd} --plan #{opts[:plan]}"
-      opts[:auto_approve] -> "#{cmd} --auto-approve"
-      true -> cmd
-    end
+    cmd = if opts[:plan], do: "#{cmd} --plan #{opts[:plan]}", else: cmd
+    cmd = if opts[:auto_approve], do: "#{cmd} --auto-approve", else: cmd
 
     DeployEx.Terraform.run_command_with_input(cmd, opts[:directory])
   end
