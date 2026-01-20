@@ -45,11 +45,16 @@ defmodule Mix.Tasks.DeployEx.Ssh.Authorize do
     opts = Keyword.put_new(opts, :directory, @terraform_default_path)
 
     with :ok <- DeployExHelpers.check_in_umbrella(),
-         {:ok, security_group_id} <- DeployEx.Terraform.security_group_id(opts[:directory]),
-         :ok <- add_or_remove_whitelist(opts, security_group_id) do
-      :ok
+         {:ok, security_group_ids} <- DeployEx.Terraform.security_group_ids(opts[:directory]) do
+      Enum.each(security_group_ids, fn security_group_id ->
+        case add_or_remove_whitelist(opts, security_group_id) do
+          :ok -> :ok
+          {:error, %{code: :conflict}} -> :ok
+          {:error, reason} -> Mix.raise("Failed to authorize SSH: #{reason}")
+        end
+      end)
     else
-      {:error, e} -> Mix.raise(to_string(e))
+      {:error, e} -> Mix.raise("Failed to authorize SSH: #{to_string(e)}")
     end
   end
 

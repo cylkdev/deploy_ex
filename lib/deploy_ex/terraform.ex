@@ -116,21 +116,31 @@ defmodule DeployEx.Terraform do
     end
   end
 
-  def security_group_id(terraform_directory) do
-    terraform_state_show = """
-    state show 'module.app_security_group.module.sg.aws_security_group.this_name_prefix[0]' \
-    | grep 'id.*sg-' \
-    | awk '{print $3}' \
-    | awk '{print substr($0, 2, length($0) - 2)}'
-    """
+  def security_group_ids(terraform_directory) do
+    with {:ok, output} <- run_command("show -json", terraform_directory),
+         tf_json <- Jason.decode!(output),
+         app_sg_resource <-
+           DeployEx.TerraformStateReader.get_resource(
+             tf_json,
+             ["app_security_group", "sg"],
+             "aws_security_group",
+             "this_name_prefix",
+             0
+           ),
+         web_sg_resource <-
+           DeployEx.TerraformStateReader.get_resource(
+             tf_json,
+             ["web_security_group", "sg"],
+             "aws_security_group",
+             "this_name_prefix",
+             0
+           ) do
+      app_sg_id = if app_sg_resource, do: app_sg_resource["values"]["id"]
+      web_sg_id = if web_sg_resource, do: web_sg_resource["values"]["id"]
 
-    with {:ok, output} <- run_command(terraform_state_show, terraform_directory) do
-      security_group_id = String.trim(output)
-
-      if security_group_id === "" do
-        {:error, ErrorMessage.not_found("couldn't pull out security group id from terraform")}
-      else
-        {:ok, security_group_id}
+      case Enum.reject([app_sg_id, web_sg_id], &is_nil/1) do
+        [] -> {:error, ErrorMessage.not_found("terraform security groups not found")}
+        sgs -> {:ok, sgs}
       end
     end
   end
