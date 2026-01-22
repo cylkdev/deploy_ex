@@ -1,7 +1,22 @@
 defmodule DeployEx.AwsIpWhitelister do
   alias ExAws.EC2
 
-  def authorize(security_group_id, ip_address, opts \\ []) do
+  def authorize(security_group_id, ip_address, opts \\ [])
+
+  def authorize({:db, security_group_id}, ip_address, opts) do
+    opts
+    |> Keyword.merge(
+      group_id: security_group_id,
+      cidr_ip: "#{ip_address}/32",
+      ip_protocol: "tcp",
+      from_port: 5432,
+      to_port: 5432
+    )
+    |> EC2.authorize_security_group_ingress()
+    |> make_request(security_group_id, ip_address)
+  end
+
+  def authorize({:ssh, security_group_id}, ip_address, opts) do
     opts
     |> Keyword.merge(
       group_id: security_group_id,
@@ -14,7 +29,22 @@ defmodule DeployEx.AwsIpWhitelister do
     |> make_request(security_group_id, ip_address)
   end
 
-  def deauthorize(security_group_id, ip_address, opts \\ []) do
+  def deauthorize(security_group_id, ip_address, opts \\ [])
+
+  def deauthorize({:db, security_group_id}, ip_address, opts) do
+    opts
+    |> Keyword.merge(
+      group_id: security_group_id,
+      cidr_ip: "#{ip_address}/32",
+      ip_protocol: "tcp",
+      from_port: 5432,
+      to_port: 5432
+    )
+    |> EC2.revoke_security_group_ingress()
+    |> make_request(security_group_id, ip_address)
+  end
+
+  def deauthorize({:ssh, security_group_id}, ip_address, opts) do
     opts
     |> Keyword.merge(
       group_id: security_group_id,

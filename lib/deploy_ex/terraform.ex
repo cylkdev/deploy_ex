@@ -135,7 +135,7 @@ defmodule DeployEx.Terraform do
              "this_name_prefix",
              0
            ),
-          db_sg_resource <-
+         db_sg_resource <-
            DeployEx.TerraformStateReader.get_resource(
              tf_json,
              ["db_security_group", "sg"],
@@ -143,9 +143,9 @@ defmodule DeployEx.Terraform do
              "this_name_prefix",
              0
            ) do
-      app_sg_id = if app_sg_resource, do: app_sg_resource["values"]["id"]
-      web_sg_id = if web_sg_resource, do: web_sg_resource["values"]["id"]
-      db_sg_id = if db_sg_resource, do: db_sg_resource["values"]["id"]
+      app_sg_id = if app_sg_resource, do: {:ssh, app_sg_resource["values"]["id"]}
+      web_sg_id = if web_sg_resource, do: {:ssh, web_sg_resource["values"]["id"]}
+      db_sg_id = if db_sg_resource, do: {:db, db_sg_resource["values"]["id"]}
 
       case Enum.reject([app_sg_id, web_sg_id, db_sg_id], &is_nil/1) do
         [] -> {:error, ErrorMessage.not_found("terraform security groups not found")}
