@@ -101,7 +101,7 @@ defmodule Mix.Tasks.DeployEx.Ssh.Authorize do
       Mix.shell().info(
         IO.ANSI.format([
           :yellow,
-          "Authorizing current device #{current_ip} in security group #{security_group_id}",
+          "Authorizing current device #{current_ip} in security group #{inspect(security_group_id)}",
           :reset
         ])
       )
