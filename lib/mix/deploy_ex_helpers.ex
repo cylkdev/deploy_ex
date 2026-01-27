@@ -227,7 +227,9 @@ defmodule DeployExHelpers do
   end
 
   def prompt_for_choice(choices, select_all?) do
-    Enum.each(Enum.with_index(choices), fn {value, i} -> Mix.shell().info("#{i}) #{value}") end)
+    Enum.each(Enum.with_index(choices), fn {value, i} ->
+      Mix.shell().info("#{i}) #{inspect(value)}")
+    end)
 
     prompt = "Make a selection between 0 and #{length(choices) - 1}"
     prompt = if select_all?, do: "#{prompt}, or type a to select all:", else: prompt

@@ -180,14 +180,16 @@ defmodule Mix.Tasks.DeployEx.Ssh do
 
             %{ipv4: ipv4, ipv6: ipv6} ->
               if opts[:ipv6], do: ipv6, else: ipv4
-
           end
 
         opts[:short] ->
-          Enum.random(instance_ips)
+          instance_ip = Enum.random(instance_ips)
+          if opts[:ipv6], do: instance_ip.ipv6, else: instance_ip.ipv4
 
         true ->
-          DeployExHelpers.prompt_for_choice(instance_ips, false)
+          instance_ips
+          |> Enum.map(fn %{ipv4: ipv4, ipv6: ipv6} -> "ipv4=#{ipv4} / ipv6=#{ipv6}" end)
+          |> DeployExHelpers.prompt_for_choice(false)
       end
 
     log_ssh_command(app_name, pem_file_path, instance_ip, opts)
