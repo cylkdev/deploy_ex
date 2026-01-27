@@ -211,7 +211,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
     command = build_command(app_name, opts)
 
     if opts[:short] do
-      Mix.shell().info("ssh -i #{pem_file_path} ec2-user@#{ip} #{command}")
+      Mix.shell().info("ssh -i #{pem_file_path} ec2-user@#{ip} -o StrictHostKeyChecking=accept-new #{command}")
     else
       Mix.shell().info([
         :green,
@@ -221,7 +221,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
         :green,
         " \"",
         :reset,
-        "ssh -i #{pem_file_path} ec2-user@#{ip} ",
+        "ssh -i #{pem_file_path} ec2-user@#{ip} -o StrictHostKeyChecking=accept-new ",
         command,
         :green,
         "\""
@@ -232,15 +232,15 @@ defmodule Mix.Tasks.DeployEx.Ssh do
   def build_command(app_name, opts) do
     cond do
       opts[:root] ->
-        "-t 'sudo -i' -o StrictHostKeyChecking=accept-new"
+        "-t 'sudo -i'"
 
       opts[:log] ->
         log_num_count = if opts[:log_count], do: " -n #{opts[:log_count]}", else: ""
 
-        "'sudo -u root journalctl -f #{app_name_target(app_name, opts)}' -o StrictHostKeyChecking=accept-new #{log_num_count}"
+        "'sudo -u root journalctl -f #{app_name_target(app_name, opts)}' #{log_num_count}"
 
       opts[:iex] ->
-        "-t 'sudo -u root /srv/#{app_name}*/bin/#{app_name}* remote' -o StrictHostKeyChecking=accept-new"
+        "-t 'sudo -u root /srv/#{app_name}*/bin/#{app_name}* remote'"
 
       true ->
         ""
