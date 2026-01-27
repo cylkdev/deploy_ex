@@ -267,8 +267,8 @@ defmodule DeployEx.AwsMachine do
 
   def find_instance_ips(project_name, app_name, opts \\ []) do
     case find_instance_details(project_name, app_name, opts) do
-      {:ok, [%{ip: ip, ipv6: ipv6}]} -> {:ok, [ipv6 || ip]}
-      {:ok, instances} -> {:ok, Enum.map(instances, &(&1[:ipv6] || &1[:ip]))}
+      {:ok, [%{ip: ip, ipv6: ipv6}]} -> {:ok, %{ipv4: ip, ipv6: ipv6}}
+      {:ok, instances} -> {:ok, Enum.map(instances, &%{ipv4: &1[:ip], ipv6: &1[:ipv6]})}
       e -> e
     end
   end
