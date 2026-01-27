@@ -75,6 +75,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
              app_name,
              machine_opts
            ) do
+            IO.inspect(instance_ips)
       if opts[:list] do
         list_instances(app_name, instance_ips)
       else
