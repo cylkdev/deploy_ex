@@ -232,15 +232,15 @@ defmodule Mix.Tasks.DeployEx.Ssh do
   def build_command(app_name, opts) do
     cond do
       opts[:root] ->
-        "-t 'sudo -i'"
+        "-t 'sudo -i' -o StrictHostKeyChecking=accept-new"
 
       opts[:log] ->
         log_num_count = if opts[:log_count], do: " -n #{opts[:log_count]}", else: ""
 
-        "'sudo -u root journalctl -f #{app_name_target(app_name, opts)}'#{log_num_count}"
+        "'sudo -u root journalctl -f #{app_name_target(app_name, opts)}' -o StrictHostKeyChecking=accept-new #{log_num_count}"
 
       opts[:iex] ->
-        "-t 'sudo -u root /srv/#{app_name}*/bin/#{app_name}* remote'"
+        "-t 'sudo -u root /srv/#{app_name}*/bin/#{app_name}* remote' -o StrictHostKeyChecking=accept-new"
 
       true ->
         ""
