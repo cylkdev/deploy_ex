@@ -1,0 +1,76 @@
+[
+  %{
+    identifier: "demo6-pg-13",
+    endpoint: %{
+      port: 5432,
+      host: "demo6-pg-13.cirg7jotthja.us-west-1.rds.amazonaws.com"
+    },
+    username: "demoDbUser",
+    database: "ebdb",
+    tags: [
+      %{value: "demo", key: "Environment"},
+      %{value: "e-bniuhqzrkr", key: "elasticbeanstalk:environment-id"},
+      %{value: "demo", key: "elasticbeanstalk:environment-name"},
+      %{value: "demo-08-07", key: "Name"}
+    ]
+  },
+  %{
+    identifier: "dev-rails-6",
+    endpoint: %{
+      port: 5432,
+      host: "dev-rails-6.cirg7jotthja.us-west-1.rds.amazonaws.com"
+    },
+    username: "prodDbUser",
+    database: "ebdb",
+    tags: [
+      %{value: "development", key: "Environment"},
+      %{value: "e-exirzj6ap4", key: "elasticbeanstalk:environment-id"},
+      %{value: "development", key: "elasticbeanstalk:environment-name"},
+      %{value: "prod-09-29-19", key: "Name"}
+    ]
+  },
+  %{
+    identifier: "prod-pg-13",
+    endpoint: %{
+      port: 5432,
+      host: "prod-pg-13.cirg7jotthja.us-west-1.rds.amazonaws.com"
+    },
+    username: "prodDbUser",
+    database: "ebdb",
+    tags: [
+      %{value: "production", key: "Environment"},
+      %{value: "e-exirzj6ap4", key: "elasticbeanstalk:environment-id"},
+      %{value: "production", key: "elasticbeanstalk:environment-name"},
+      %{value: "prod-09-29-19", key: "Name"}
+    ]
+  },
+  %{
+    identifier: "prod-pg-13-read-replica",
+    endpoint: %{
+      port: 5432,
+      host: "prod-pg-13-read-replica.cirg7jotthja.us-west-1.rds.amazonaws.com"
+    },
+    username: "prodDbUser",
+    database: "ebdb",
+    tags: [
+      %{value: "production", key: "elasticbeanstalk:environment-name"},
+      %{value: "production", key: "Environment"}
+    ]
+  },
+  %{
+    identifier: "requis-backend-db-staging",
+    endpoint: %{
+      port: 5432,
+      host: "requis-backend-db-staging.cirg7jotthja.us-west-1.rds.amazonaws.com"
+    },
+    username: "pguser",
+    database: "requis",
+    tags: [
+      %{value: "Requis Backend", key: "Group"},
+      %{value: "staging", key: "Environment"},
+      %{value: "Database", key: "Type"},
+      %{value: "Postgres", key: "Vendor"},
+      %{value: "requis", key: "Name"}
+    ]
+  }
+]

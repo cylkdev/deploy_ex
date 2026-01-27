@@ -113,7 +113,8 @@ defmodule Mix.Tasks.DeployEx.Ssh do
         resource_group: :string,
         index: :integer,
         list: :boolean,
-        ipv6: :boolean
+        ipv6: :boolean,
+        user: :string
       ]
     )
   end
@@ -211,7 +212,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
     command = build_command(app_name, opts)
 
     if opts[:short] do
-      Mix.shell().info("ssh -i #{pem_file_path} -o StrictHostKeyChecking=accept-new ec2-user@#{ip} #{command}")
+      Mix.shell().info("ssh -i #{pem_file_path} -o StrictHostKeyChecking=accept-new #{opts[:user] || "admin"}@#{ip} #{command}")
     else
       Mix.shell().info([
         :green,
@@ -221,7 +222,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
         :green,
         " \"",
         :reset,
-        "ssh -i #{pem_file_path} -o StrictHostKeyChecking=accept-new ec2-user@#{ip} ",
+        "ssh -i #{pem_file_path} -o StrictHostKeyChecking=accept-new #{opts[:user] || "admin"}@#{ip} ",
         command,
         :green,
         "\""
