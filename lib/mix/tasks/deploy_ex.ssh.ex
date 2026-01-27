@@ -211,7 +211,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
     command = build_command(app_name, opts)
 
     if opts[:short] do
-      Mix.shell().info("ssh -i #{pem_file_path} ec2-user@#{ip} -o StrictHostKeyChecking=accept-new #{command}")
+      Mix.shell().info("ssh -i #{pem_file_path} -o StrictHostKeyChecking=accept-new ec2-user@#{ip} #{command}")
     else
       Mix.shell().info([
         :green,
@@ -221,7 +221,7 @@ defmodule Mix.Tasks.DeployEx.Ssh do
         :green,
         " \"",
         :reset,
-        "ssh -i #{pem_file_path} ec2-user@#{ip} -o StrictHostKeyChecking=accept-new ",
+        "ssh -i #{pem_file_path} -o StrictHostKeyChecking=accept-new ec2-user@#{ip} ",
         command,
         :green,
         "\""
