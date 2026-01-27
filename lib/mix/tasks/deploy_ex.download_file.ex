@@ -85,7 +85,7 @@ defmodule Mix.Tasks.DeployEx.DownloadFile do
                app_name,
                machine_opts
              ) do
-        ip = List.first(instance_ips)
+        %{ipv4: ip} = List.first(instance_ips)
 
         abs_pem_file = Path.expand(pem_file_path)
         abs_local_path = Path.expand(local_path)

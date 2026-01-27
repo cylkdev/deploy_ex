@@ -183,7 +183,7 @@ defmodule Mix.Tasks.Terraform.DeleteEbsSnapshot do
       matching_instances =
         Enum.filter(instances, fn instance ->
           instance_ip = instance["ipAddress"] || instance["ipv6Address"]
-          instance_ip in instance_ips
+          Enum.any?(instance_ips, fn %{ipv4: ip} -> ip == instance_ip end)
         end)
 
       case matching_instances do

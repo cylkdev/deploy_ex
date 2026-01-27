@@ -112,7 +112,8 @@ defmodule Mix.Tasks.DeployEx.Ssh do
         pem: :string,
         resource_group: :string,
         index: :integer,
-        list: :boolean
+        list: :boolean,
+        ipv6: :boolean
       ]
     )
   end
@@ -136,12 +137,12 @@ defmodule Mix.Tasks.DeployEx.Ssh do
 
     instance_ips
     |> Enum.with_index()
-    |> Enum.each(fn {ip, index} ->
+    |> Enum.each(fn {%{ipv4: ipv4, ipv6: ipv6}, index} ->
       Mix.shell().info([
         :cyan,
         "  [#{index}] ",
         :reset,
-        ip
+        "ipv4: #{inspect(ipv4)} / ipv6: #{inspect(ipv6)}"
       ])
     end)
 
@@ -177,8 +178,9 @@ defmodule Mix.Tasks.DeployEx.Ssh do
                 "Instance index #{opts[:index]} not found. Available: 0..#{length(instance_ips) - 1}"
               )
 
-            ip ->
-              ip
+            %{ipv4: ipv4, ipv6: ipv6} ->
+              if opts[:ipv6], do: ipv6, else: ipv4
+
           end
 
         opts[:short] ->
